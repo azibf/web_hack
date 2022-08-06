@@ -8,132 +8,39 @@ from data import db_session
 from data.users import *
 
 data = {
-    'Person': {
-        'name': 'Alexey Ovchinnikov',
-        'work': "Programmer",
-        'avatar': "../../static/admin/img/avatar-6.2821b67d.jpg"
-    },
-    'messages': {
-        'all': 15,
-        "new": 2,
-        'msg': {
-            1: {
-                'from': "User 1",
-                'text': "HELLO",
-                'time': '12:15',
-                'avatar': "../../static/admin/img/avatar-3.d23ced61.jpg",
-                'status': "warning",
-            },
-            2: {
-                'from': "User 2",
-                'text': "HELLO ALLELLEO",
-                'time': '12:25',
-                'avatar': "../../static/admin/img/avatar-3.d23ced61.jpg",
-                'status': "success",
-            }
-        }
-    },
-    "Tasks": {
-        'all': 2,
+    'tasks': {
+        'count': 2,
         1: {
-            'name': "Доделать админку",
-            'percent': '34',
-            'status': '3'
-        },
-        2: {
-            'name': "Доделать бекенд",
-            'percent': '10',
-            'status': '1'
-        }
-    },
-    'PageData': {
-        'Users': {
-            'purpose': 1000,
-            'total': 666,
-            'percent': (666 / 1000) * 100,
-        },
-        'NewUsers': {
-            'purpose': 1000,
-            'total': 14,
-            'percent': (14 / 1000) * 100,
-        },
-        'NewPosts': {
-            'purpose': 1000,
-            'total': 89,
-            'percent': (89 / 1000) * 100,
-        },
-        'Posts': {
-            'purpose': 1000,
-            'total': 798,
-            'percent': (798 / 1000) * 100,
-        },
-        'Likes': {
-            'all': {
-                'up': True,
-                "total": 2500
-            },
-            'today': {
-                "up": True,
-                'total': 333,
-            }
-        },
-        'Comments': {
-            'all': {
-                'up': True,
-                "total": 4534
-            },
-            'today': {
-                "up": True,
-                'total': 666,
-            }
-        },
-        'Requests': {
-            'total': 29834,
-            "popular": {
+            'name': 'Task 1',
+            'description': "lorem lorem lorem lorem lorem lorem",
+            'status': 0,
+            'subtasks': {
+                'count': 2,
                 1: {
-                    'name': 'Новости',
-                    'total': 3445,
+                    'text': 'ha ha ha ha',
+                    'status': 1
                 },
                 2: {
-                    'name': 'Музыка',
-                    'total': 632,
+                    'text': 'ha ha ha ha',
+                    'status': 0
                 }
             }
         },
-        'Files': {
-            'all': 9480,
-            'today': 234,
-            "size": str(435) + 'Mb',
-        },
-        'MostPopularUsers': {
-            'count': 3,
-            1: {
-                'name': 'User 1',
-                'id': "@user_1",
-                'subscribes': 100,
-                'likes': 300,
-                'comments': 150,
-                'posts': 10,
-                'avatar': '../../static/admin/img/avatar-1.ce912d90.jpg'
-            },
-            2: {
-                'name': 'User 2',
-                'id': "@user_2",
-                'subscribes': 80,
-                'likes': 200,
-                'comments': 140,
-                'posts': 10,
-                'avatar': '../../static/admin/img/avatar-1.ce912d90.jpg'
-            },
-            3: {
-                'name': 'User 3',
-                'id': "@user_3",
-                'subscribes': 55,
-                'likes': 100,
-                'comments': 50,
-                'posts': 4,
-                'avatar': '../../static/admin/img/avatar-1.ce912d90.jpg'
-            },
+        2: {
+            'name': 'Task 2',
+            'description': "lorem lorem lorem lorem lorem lorem",
+            'status': 0,
+            'subtasks': {
+                'count': 2,
+                1: {
+                    'text': 'ha ha ha ha',
+                    'status': 0
+                },
+                2: {
+                    'text': 'ha ha ha ha',
+                    'status': 0
+                }
+            }
         }
     }
 }
@@ -150,18 +57,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JSON_AS_ASCII'] = False
 app.config['APPLICATION_ROOT'] = '/'
 app.config['MAX_COOKIE_SIZE'] = 8 * 1024
-
-
-def GenerateToken(lenght=50):
-    sumbols = list("qwertyuiopasdfghjklzxcvbnm1234567890")
-    token = ''
-    for i in range(lenght):
-        token += random.choice(sumbols)
-
-    return token
-
-
-SQLAlchemyDB.create_all()
 
 
 @login_manager.user_loader
@@ -186,6 +81,23 @@ def LoginUser():
             return "В ДОСТУПЕ ОТКАЗАННО"
 
     return flask.render_template('user/login.html')
+
+
+@app.route('/register', methods=['POST', 'GET'])
+def RegUser():
+    if flask.request.method == 'POST':
+        session = db_session.create_session()
+        nick = flask.request.form['nick']
+        password = flask.request.form['password']
+        user = User(nick=nick,
+                    hashed_password=User.set_password(password),
+                    is_team_lead=False)
+        session.add(user)
+        session.commit()
+        session.close()
+        return flask.redirect('/login')
+
+    return flask.render_template('user/register.html')
 
 
 @app.route('/')
