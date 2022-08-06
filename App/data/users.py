@@ -62,6 +62,18 @@ class Team(SqlAlchemyBase, UserMixin):
     team_lead = orm.relation('User')
 
 
+class Dashboard(SqlAlchemyBase, UserMixin):
+    __tablename__ = 'dashboards'
+
+    id = sqlalchemy.Column(sqlalchemy.Integer,
+                           primary_key=True, autoincrement=True)
+    title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    key = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    owner_id = sqlalchemy.Column(sqlalchemy.Integer,
+                                     sqlalchemy.ForeignKey("users.id"))
+    owner = orm.relation('User')
+
+
 class Team_Match(SqlAlchemyBase, UserMixin):
     __tablename__ = 'team_match'
 
