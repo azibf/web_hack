@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from wtforms.validators import ValidationError
 import random
 from data import db_session
+from data.users import *
 
 data = {
     'Person': {
@@ -158,20 +159,6 @@ def GenerateToken(lenght=50):
         token += random.choice(sumbols)
 
     return token
-
-
-class User(SQLAlchemyDB.Model, UserMixin):
-    id = SQLAlchemyDB.Column(SQLAlchemyDB.Integer, primary_key=True)
-    username = SQLAlchemyDB.Column(SQLAlchemyDB.String(20), nullable=False, unique=True)
-    password = SQLAlchemyDB.Column(SQLAlchemyDB.String(80), nullable=False)
-    admin = SQLAlchemyDB.Column(SQLAlchemyDB.Boolean, nullable=False, default=False)
-    token = SQLAlchemyDB.Column(SQLAlchemyDB.String(255), nullable=False)
-
-    def validate_username(self, username):
-        existing_user_username = User.query.filter_by(username=username.data).first()
-        if existing_user_username:
-            raise ValidationError(
-                'That username already exists. Please choose a different one.')
 
 
 SQLAlchemyDB.create_all()

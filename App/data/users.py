@@ -5,6 +5,7 @@ from data.db_session import SqlAlchemyBase
 from . import db_session
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from wtforms.validators import ValidationError
 
 
 class User(SqlAlchemyBase, UserMixin):
@@ -29,6 +30,12 @@ class User(SqlAlchemyBase, UserMixin):
 
     def check_password(self, password):
         return check_password_hash(self.hashed_password, password)
+
+    def validate_username(self, username):
+        existing_user_username = User.query.filter_by(username=username.data).first()
+        if existing_user_username:
+            raise ValidationError(
+                'That username already exists. Please choose a different one.')
 
 
 class Task(SqlAlchemyBase, UserMixin):
