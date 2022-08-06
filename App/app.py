@@ -175,5 +175,5 @@ def apiBot():
 
 if __name__ == '__main__':
     db_session.global_init("db/task_manager.sqlite")
-    #app.run(debug=True)
-    app.run()
+    app.run(debug=True)
+    #app.run()
