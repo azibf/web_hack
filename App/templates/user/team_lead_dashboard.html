@@ -190,12 +190,17 @@
                                 {%endfor%}
                             </div>
                             <button class="btn btn-outline-primary" href="#">Commit</button>
-                            <button class="btn btn-outline-primary" href="/addbook/{{item.id}}">Добавить сабтаск</button>
+                            <button class="btn btn-outline-primary" href="/addbook/{{item.id}}">Добавить сабтаск
+                            </button>
                             <button class="btn btn-outline-primary" href="#">Удалить таск</button>
+
+
                         </div>
                     </div>
                     {% endfor %}
                 </div>
+                <button class="btn btn-outline-primary w-100" href="/kpi">Завершить доску</button>
+                <br><br>
                 <div class="card">
                     <div class="card-header">
                         <h3 class="h4 mb-0">Добавить таск</h3>
@@ -216,6 +221,40 @@
                     </div>
                 </div>
             </div>
+            {%if not tasks%}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h4 mb-0">Создать доску</h3>
+                </div>
+                <div class="card-body pt-0">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label" for="exampleInputEmail1">Название доски</label>
+                            <input class="form-control" id="exampleInputEmail1" type="text"
+                                   aria-describedby="emailHelp">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="exampleInputPassword1">Пароль для доски</label>
+                            <input class="form-control" id="exampleInputPassword1" type="password">
+                        </div>
+                        <div class="row">
+                            <h2>Выбрать команду</h2>
+                            <div class="col-sm-9">
+                                {% for user in users%}
+                                <div class="form-check">
+                                    <input class="form-check-input" id="defaultCheck0" type="checkbox">
+                                    <label class="form-check-label" for="defaultCheck0">{{user.name}}</label>
+                                    <label class="form-check-label" for="defaultCheck0">Рекомендован к работе: {{user.recomented}}</label>
+                                </div>
+                                {{%endfor%}}
+
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Создать!</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
         </section>
 
 
