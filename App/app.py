@@ -165,6 +165,14 @@ def dashboard():
     return flask.render_template('user/dashboard.html', data=data, usr=current_user)
 
 
+@app.route('/api/forBot')
+def apiBot():
+    # статус
+    # тим-лид(имя)
+    # участники группы и номер группы
+    # дата дедлайна
+    pass
+
 if __name__ == '__main__':
     db_session.global_init("db/task_manager.sqlite")
     #app.run(debug=True)
