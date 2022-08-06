@@ -26,7 +26,7 @@ class User(SqlAlchemyBase, UserMixin):
     task = orm.relation("Task", back_populates='user')
     team = orm.relation("Team", back_populates='team_lead')
     dashboard = orm.relation("Dashboard", back_populates='owner')
-    match_team_lead = orm.relation("Team_Match", back_populates='team_lead')
+    #match_team_lead = orm.relation("Team_Match", back_populates='team_lead')
     match_user = orm.relation("Team_Match", back_populates='user')
 
     def set_password(self, password):
@@ -45,27 +45,23 @@ class User(SqlAlchemyBase, UserMixin):
 class Task(SqlAlchemyBase, UserMixin):
     __tablename__ = 'tasks'
 
-    id = sqlalchemy.Column(sqlalchemy.Integer,
-                           primary_key=True, autoincrement=True)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     team = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     status = sqlalchemy.Column(sqlalchemy.Boolean, nullable=True, default=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     deadline = sqlalchemy.Column(sqlalchemy.DateTime, nullable=True)
-    user_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                sqlalchemy.ForeignKey("users.id"))
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
     user = orm.relation('User')
-    subtask = orm.relation("Subtask", back_populates='subtask')
+    subtask = orm.relation("Subtask", back_populates='task')
 
 
 class Subtask(SqlAlchemyBase, UserMixin):
     __tablename__ = 'subtasks'
 
-    id = sqlalchemy.Column(sqlalchemy.Integer,
-                           primary_key=True, autoincrement=True)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     text = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     status = sqlalchemy.Column(sqlalchemy.Boolean, nullable=True, default=False)
-    task_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                sqlalchemy.ForeignKey("tasks.id"))
+    task_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("tasks.id"))
     task = orm.relation('Task')
 
 
@@ -75,8 +71,7 @@ class Team(SqlAlchemyBase, UserMixin):
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    team_lead_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                sqlalchemy.ForeignKey("users.id"))
+    team_lead_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
     team_lead = orm.relation('User')
 
 
@@ -87,8 +82,7 @@ class Dashboard(SqlAlchemyBase, UserMixin):
                            primary_key=True, autoincrement=True)
     title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     key = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    owner_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                     sqlalchemy.ForeignKey("users.id"))
+    owner_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
     owner = orm.relation('User')
 
 
@@ -97,12 +91,10 @@ class Team_Match(SqlAlchemyBase, UserMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
-    user_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                     sqlalchemy.ForeignKey("users.id"))
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
     user = orm.relation('User')
-    team_lead_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                     sqlalchemy.ForeignKey("users.id"))
-    team_lead = orm.relation('User')
+    #team_lead_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
+    #team_lead = orm.relation('User')
 
 
 
