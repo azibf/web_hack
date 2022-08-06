@@ -50,7 +50,7 @@ SQLAlchemyDB = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'Login'
+login_manager.login_view = 'LoginUser'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///static/databases/database.db'
 app.config['SECRET_KEY'] = "IESBaofWPIfhohw398fheIUFEWGF(W3fsdbOU#F(WFGEJDSBIUW#"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -74,7 +74,7 @@ def LoginUser():
         if user:
             if bcrypt.check_password_hash(user.password, password):
                 login_user(user)
-                return flask.redirect(f'/dashboard')
+                return flask.redirect('/dashboard')
             else:
                 return "В ДОСТУПЕ ОТКАЗАННО"
         else:
@@ -104,6 +104,59 @@ def RegUser():
 @login_required
 def test():
     return "hello"
+
+@app.route('/add_subtask',  methods=['GET', 'POST'])
+@login_required
+def subtask_add():
+    if flask.form.validate_on_submit():
+        session = db_session.create_session()
+        task = Task()
+        task.team = flask.request.form['team']
+        task.status = flask.request.form['status']
+        task.description = flask.request.form['description']
+        current_user.task(task)
+        session.merge(current_user)
+        session.commit()
+        return flask.render_template('/dashboard')
+    return flask.render_template('/dashboard')
+
+
+@app.route('/add',  methods=['GET', 'POST'])
+@login_required
+def task_add():
+    if flask.form.validate_on_submit():
+        session = db_session.create_session()
+        task = Task()
+        task.team = flask.request.form['team']
+        task.status = flask.request.form['status']
+        task.description = flask.request.form['description']
+        current_user.task(task)
+        session.merge(current_user)
+        session.commit()
+        return flask.render_template('/dashboard')
+    return flask.render_template('/dashboard')
+
+
+@app.route('/delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def task_delete(id):
+    session = db_session.create_session()
+    task = session.query(Task).filter(Task.id == id, Task.user_id == current_user.id).first()
+    session.delete(task)
+    session.commit()
+    session.close()
+    return flask.redirect('/dashboard')
+
+
+@app.route('/commit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def task_commit(id):
+    session = db_session.create_session()
+    task = session.query(Task).filter(Task.id == id, Task.user_id == current_user.id).first()
+    task.status = True
+    session.commit()
+    session.close()
+    return flask.redirect('/dashboard')
 
 
 @app.route('/dashboard', methods=['GET', 'POST'])
