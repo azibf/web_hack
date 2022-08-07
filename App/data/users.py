@@ -26,8 +26,6 @@ class User(SqlAlchemyBase, UserMixin):
     task = orm.relation("Task", back_populates='user')
     team = orm.relation("Team", back_populates='team_lead')
     dashboard = orm.relation("Dashboard", back_populates='owner')
-    #match_team_lead = orm.relation("Team_Match", back_populates='team_lead')
-    match_user = orm.relation("Team_Match", back_populates='user')
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
@@ -91,10 +89,11 @@ class Team_Match(SqlAlchemyBase, UserMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
-    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
-    user = orm.relation('User')
-    #team_lead_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
-    #team_lead = orm.relation('User')
+    user_id = sqlalchemy.Column(sqlalchemy.Integer)
+    team_lead_id = sqlalchemy.Column(sqlalchemy.Integer)
+    par1 = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    par2 = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    par3 = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
 
 

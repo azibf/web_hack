@@ -2,6 +2,7 @@ import flask
 from flask_bcrypt import Bcrypt
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
+from ML_model import rfc
 from wtforms.validators import ValidationError
 import random
 from data import db_session
@@ -41,7 +42,7 @@ def LoginUser():
             if user.check_password(password):
                 login_user(user)
                 tasks = session.query(Task).filter(Task.user == user).all()
-                return flask.redirect('/dashboard', tasks=tasks)
+                return flask.redirect('/dashboard')
             else:
                 return "В ДОСТУПЕ ОТКАЗАННО"
         else:
@@ -64,6 +65,24 @@ def RegUser():
         user.telegram = flask.request.form['telegram']
         session.add(user)
         session.commit()
+        if user.is_team_lead:
+            users = session.query(User).filter(not User.is_team_lead).all()
+            for elem in users:
+                match = Team_Match()
+                match.user_id = elem.id
+                match.team_lead_id = user.id
+                match.par1, match.par2, match.par3 = 0.5, 0.5, 1500
+                session.add(match)
+                session.commit()
+        else:
+            users = session.query(User).filter(User.is_team_lead).all()
+            for elem in users:
+                match = Team_Match()
+                match.team_lead_id = elem.id
+                match.user_id = user.id
+                match.par1, match.par2, match.par3 = 0.5, 0.5, 1500
+                session.add(match)
+                session.commit()
         session.close()
         return flask.redirect('/login')
     return flask.render_template('user/register.html')
@@ -87,26 +106,29 @@ def subtask_add():
         subtask.description = flask.request.form['description']
         task.task(task)
         session.merge(current_user)
-        subtasks = session.query(Subtask).filte(Subtask.task_id == id).all()
+        subtasks = session.query(Subtask).filter(Subtask.task_id == id).all()
         session.commit()
     return flask.render_template('/dashboard', subtasks=subtasks)
 
 
-@app.route('/add',  methods=['GET', 'POST'])
+@app.route('/create_task',  methods=['GET', 'POST'])
 @login_required
 def task_add():
-
-    if flask.form.validate_on_submit():
-        session = db_session.create_session()
+    session = db_session.create_session()
+    if flask.request.method == 'POST':
+        #session = db_session.create_session()
         task = Task()
         task.team = flask.request.form['team']
         task.status = flask.request.form['status']
         task.description = flask.request.form['description']
         current_user.task(task)
         session.merge(current_user)
-    tasks = session.query(Task).filte(Task.user == current_user).all()
+    users = []
+    for user in session.query(User).all():
+        match = session.query(Team_Match).filter(Team_Match.team_lead_id == current_user.id).filter(Team_Match.user_id == user.id).first()
+        users.append(tuple(user, rfc.predict([match.par1, match.par2, match.par3])))
     session.commit()
-    return flask.render_template('/dashboard', tasks=tasks)
+    return flask.render_template('user/create_task.html', users=users)
 
 
 @app.route('/delete/<int:id>', methods=['GET', 'POST'])
@@ -134,7 +156,11 @@ def task_commit(id):
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    return flask.render_template('user/dashboard.html', data=data, usr=current_user)
+    session = db_session.create_session()
+    tasks = session.query(Task).filter(Task.user == current_user).all()
+    session.close()
+    print(tasks)
+    return flask.render_template('user/dashboard.html', data=tasks, usr=current_user)
 
 
 if __name__ == '__main__':
