@@ -42,7 +42,10 @@ def LoginUser():
             if user.check_password(password):
                 login_user(user)
                 tasks = session.query(Task).filter(Task.user == user).all()
-                return flask.redirect('/dashboard')
+                if not user.is_team_lead:
+                    return flask.redirect('/dashboard')
+                else:
+                    return flask.redirect('/dashboard')
             else:
                 return "В ДОСТУПЕ ОТКАЗАННО"
         else:
@@ -60,7 +63,7 @@ def RegUser():
         user.name = flask.request.form['name']
         user.surname = flask.request.form['surname']
         user.set_password(flask.request.form['password'])
-        user.is_team_lead = 1 if 'on' == flask.request.form['is_team_lead'] else 0
+        user.is_team_lead = 1 if 'is_team_lead' in str(flask.request.values) else 0
         user.specialization = flask.request.form['specialization']
         user.telegram = flask.request.form['telegram']
         session.add(user)
@@ -94,26 +97,30 @@ def test():
     return "hello"
 
 
-@app.route('/add_subtask/<int:id>',  methods=['GET', 'POST'])
-@login_required
-def subtask_add():
-    if flask.form.validate_on_submit():
-        session = db_session.create_session()
-        subtask = Subtask()
-        task = session.query(Task).filter(Task.id == id).first()
-        subtask.text = flask.request.form['text']
-        subtask.status = False
-        subtask.description = flask.request.form['description']
-        task.task(task)
-        session.merge(current_user)
-        subtasks = session.query(Subtask).filter(Subtask.task_id == id).all()
-        session.commit()
-    return flask.render_template('/dashboard', subtasks=subtasks)
-
-
 @app.route('/create_task',  methods=['GET', 'POST'])
 @login_required
 def task_add():
+    session = db_session.create_session()
+    if flask.request.method == 'POST':
+        #session = db_session.create_session()
+        task = Task()
+        task.team = flask.request.form['team']
+        task.status = flask.request.form['status']
+        task.description = flask.request.form['description']
+        current_user.task(task)
+        session.merge(current_user)
+    users = []
+    for user in session.query(User).all():
+        match = session.query(Team_Match).filter(Team_Match.team_lead_id == current_user.id).filter(Team_Match.user_id == user.id).first()
+        users.append(tuple(user, rfc.predict([match.par1, match.par2, match.par3])))
+    session.commit()
+    return flask.render_template('user/create_task.html', users=users)
+
+
+
+@app.route('/users_tasks',  methods=['GET', 'POST'])
+@login_required
+def merge_users_with_tasks():
     session = db_session.create_session()
     if flask.request.method == 'POST':
         #session = db_session.create_session()
@@ -142,6 +149,17 @@ def task_delete(id):
     return flask.redirect('/dashboard')
 
 
+@app.route('/delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def board_delete(id):
+    session = db_session.create_session()
+    task = session.query(Task).filter(Task.id == id, Task.user_id == current_user.id).first()
+    session.delete(task)
+    session.commit()
+    session.close()
+    return flask.redirect('/dashboard')
+
+
 @app.route('/commit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def task_commit(id):
@@ -157,13 +175,42 @@ def task_commit(id):
 @login_required
 def dashboard():
     session = db_session.create_session()
+    users = session.query(User).all()
+    if flask.request.method == 'POST':
+        if not current_user.is_team_lead:
+            title = flask.request.form['nick']
+            key = flask.request.form['password']
+            print(f"TITLE:{title}")
+            print(f"KEY:{key}")
+            board = session.query(Dashboard).filter(Dashboard.title == title).first()
+            tasks = session.query(Task).filter(Task.user_id == current_user.id).all()
+            if board:
+                if board.key == key:
+                    return flask.render_template('user/dashboard.html', data=tasks, user=current_user, auth=True)
+                else:
+                    return "В ДОСТУПЕ ОТКАЗАННО"
+            else:
+                return "В ДОСТУПЕ ОТКАЗАННО"
+        else:
+            board = Dashboard()
+            title = flask.request.form['title']
+            key = flask.request.form['key']
+            current_user.merge(board)
+            session.commit()
+    users = [] if not current_user.is_team_lead else users
+    return flask.render_template('user/dashboard.html', data=[], user=current_user, users=users)
+
+
+@app.route('/team_lead_dashboard', methods=['GET', 'POST'])
+@login_required
+def team_lead_dashboard():
+    session = db_session.create_session()
     tasks = session.query(Task).filter(Task.user == current_user).all()
     session.close()
     print(tasks)
-    return flask.render_template('user/dashboard.html', data=tasks, usr=current_user)
+    return flask.render_template('user/team_lead_dashboard.html', data=tasks, user=current_user)
 
 
 if __name__ == '__main__':
     db_session.global_init("db/task_manager.sqlite")
-    app.run(debug=True)
-    #app.run()
+    app.run()
