@@ -59,12 +59,12 @@
                     <use xlink:href="#real-estate-1"></use>
                 </svg>
                 <span>Доманшняя </span></a></li>
-            <li class="sidebar-item"><a class="sidebar-link" href="/create_task">
+            <li class="sidebar-item"><a class="sidebar-link" href="index.html">
                 <svg class="svg-icon svg-icon-sm svg-icon-heavy">
                     <use xlink:href="#real-estate-1"></use>
                 </svg>
                 <span>Добавить задачу </span></a></li>
-            <li class="sidebar-item"><a class="sidebar-link" href="create_task.html" data-bs-toggle="collapse">
+            <li class="sidebar-item"><a class="sidebar-link" href="#tablesDropdown" data-bs-toggle="collapse">
                 <svg class="svg-icon svg-icon-sm svg-icon-heavy">
                     <use xlink:href="#portfolio-grid-1"></use>
                 </svg>
@@ -167,6 +167,7 @@
         <section>
             <div class="container-fluid">
                 <div class="row">
+                    {% if tasks %}
                     {% for task in data %}
                     <div class="col-md-4">
                         <div class="card mb-4">
@@ -179,6 +180,32 @@
                         </div>
                     </div>
                     {% endfor %}
+                    {% else %}
+                    {% if not user.is_team_lead%}
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="h4 mb-0">Подключиться к доске</h3>
+                        </div>
+                        <div class="card-body pt-0">
+                            <form>
+                                <div class="mb-3">
+                                    <label class="form-label" for="exampleInputEmail1">Название доски</label>
+                                    <input class="form-control" id="exampleInputEmail1" type="text"
+                                           aria-describedby="emailHelp">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="exampleInputPassword1">Пароль для доски</label>
+                                    <input class="form-control" id="exampleInputPassword1" type="password">
+                                </div>
+
+                                <button class="btn btn-primary" type="submit">Подключиться!</button>
+                            </form>
+                        </div>
+                    </div>
+                    {%else%}
+                    <h1>Вы можете создать новую доску во влкадке "Добавить задачу"</h1>
+                    {%%endif}
+                    {%endif%}
                 </div>
 
                 <div class="row gy-4">
